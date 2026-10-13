@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edge Security Camera</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%232f81f7'/%3E%3Ccircle cx='16' cy='16' r='5' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div>
+    <h1>Edge Security Camera</h1>
+    <p class="sub">Real-time authorised vs unauthorised person detection</p>
+  </div>
+  <div class="privacy" title="All processing happens in this browser tab">
+    <span class="dot"></span> Runs on your device. Video never leaves this page.
+  </div>
+</header>
+
+<main>
+  <section class="stage-col">
+    <div class="stage" id="stage">
+      <video id="video" playsinline muted></video>
+      <canvas id="zones"></canvas>
+      <canvas id="overlay"></canvas>
+      <div class="placeholder" id="placeholder">
+        <button id="btnStart" class="primary" disabled>Loading models&hellip;</button>
+        <p id="startHint">Your browser will ask for camera permission.</p>
+      </div>
+      <div class="alert-banner" id="banner" hidden>INTRUDER ALERT &mdash; UNAUTHORISED PERSON</div>
+    </div>
+    <div class="chips" id="chips" aria-live="polite">
+      <span class="chip" id="chipArm">ARMED</span>
+      <span class="chip" id="chipMode">Recognition</span>
+      <span class="chip" id="chipFps">FPS &ndash;</span>
+      <span class="chip" id="chipAuth">Authorised 0</span>
+      <span class="chip" id="chipUnk">Unknown 0</span>
+      <span class="chip" id="chipAlerts">Alerts 0</span>
+      <span class="chip muted" id="chipBackend"></span>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Mode">
+        <button id="modeRec" class="on">Recognition</button>
+        <button id="modeDet" title="Detects faces only. Cannot tell who is who.">Detection only</button>
+      </div>
+      <button id="btnArm" class="on">Armed</button>
+      <label title="Lower = stricter matching">Match tolerance
+        <input id="thr" type="range" min="0.35" max="0.7" step="0.01" value="0.5">
+        <output id="thrOut">0.50</output>
+      </label>
+      <label>Alert after
+        <input id="minFrames" type="range" min="2" max="20" step="1" value="6">
+        <output id="minOut">6</output> frames
+      </label>
+    </div>
+    <div class="zonebar" role="group" aria-label="Zones">
+      <span class="zl">Zones</span>
+      <button id="zGreen" class="zbtn green" disabled>+ Green zone</button>
+      <button id="zRed" class="zbtn red" disabled>+ Red zone</button>
+      <button id="zSplit" disabled title="Left half green, right half red">Quick split</button>
+      <button id="zUndo" disabled>Undo point</button>
+      <button id="zClear" class="danger" disabled>Clear zones</button>
+      <label class="chk"><input type="checkbox" id="zAllowRed"> Enrolled people may enter red zone</label>
+    </div>
+    <p class="note" id="zoneHint">Optional. <b>Green zone</b>: enrolled people are authorised. <b>Red zone</b>: restricted area. Anyone not enrolled is unauthorised in either zone. Outside the zones nobody is flagged. No zones = the whole frame is monitored.</p>
+    <p class="note" id="statusMsg"></p>
+  </section>
+
+  <aside>
+    <section class="card">
+      <h2>Authorised persons <span class="count" id="peopleCount">0</span></h2>
+      <ul class="list" id="peopleList"></ul>
+      <p class="empty" id="peopleEmpty">No one enrolled yet.</p>
+      <form id="enrollForm" class="row">
+        <input id="enrollName" type="text" placeholder="Name" value="Presenter" maxlength="30" aria-label="Name to enroll" required>
+        <button class="primary" id="btnEnroll" disabled>Enroll</button>
+      </form>
+      <p class="note" id="enrollMsg">Start the camera, enter a name, press Enroll and look at the camera.</p>
+      <div class="row small">
+        <button id="btnExport">Export</button>
+        <button id="btnImport">Import</button>
+        <button id="btnClear" class="danger">Remove all</button>
+        <input id="fileImport" type="file" accept="application/json" hidden>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Persons in view <span class="count" id="liveCount">0</span></h2>
+      <ul class="list" id="liveList"></ul>
+      <p class="empty" id="liveEmpty">Nobody in frame.</p>
+    </section>
+
+    <section class="card">
+      <h2>Session roster <span class="count" id="rosterCount">0</span></h2>
+      <p class="note">Everyone seen since you opened the page.</p>
+      <ul class="list" id="rosterList"></ul>
+      <p class="empty" id="rosterEmpty">No one seen yet.</p>
+    </section>
+
+    <section class="card">
+      <h2>Alert log <span class="count" id="alertCount">0</span></h2>
+      <ul class="list alerts" id="alertList"></ul>
+      <p class="empty" id="alertEmpty">No alerts.</p>
+    </section>
+  </aside>
+</main>
+
+<footer>
+  Enrolled faces are stored only in this browser (localStorage). Indoor, frontal, well-lit faces work best.
+  A printed photo or a screen can fool it (no liveness check). Demo, not a certified security product.
+</footer>
+
+<script src="vendor/face-api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

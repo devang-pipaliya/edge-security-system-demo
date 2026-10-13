@@ -1,0 +1,6 @@
+/models/
+alerts/
+authorized/
+__pycache__/
+*.pt
+detect_*.jpg
